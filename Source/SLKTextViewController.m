@@ -1153,7 +1153,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 {
     NSArray *actions = [self.rightButton actionsForTarget:self forControlEvent:UIControlEventTouchUpInside];
     
-    if (actions.count > 0 && [self canPressRightButton]) {
+    if (actions.count > 0) {
         [self.rightButton sendActionsForControlEvents:UIControlEventTouchUpInside];
     }
 }
@@ -2213,6 +2213,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
             _keyboardHeightBeforeDragging = self.keyboardHC.constant;
         }
     }
+    [self dismissKeyboard:YES];
 }
 
 

@@ -64,6 +64,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) CGFloat appropriateHeight;
 
 
+- (void)slk_updateConstraintConstants;
+
 #pragma mark - Initialization
 ///------------------------------------------------
 /// @name Initialization
@@ -97,6 +99,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** The accessory view's maximum height. Default is 38 pts. */
 @property (nonatomic, assign) CGFloat editorContentViewHeight;
+
+/** The content views height */
+@property (nonatomic, strong, readonly) NSLayoutConstraint *contentViewHC;
 
 /** A Boolean value indicating whether the control is in edit mode. */
 @property (nonatomic, getter = isEditing) BOOL editing;

@@ -2213,7 +2213,6 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
             _keyboardHeightBeforeDragging = self.keyboardHC.constant;
         }
     }
-    [self dismissKeyboard:YES];
 }
 
 

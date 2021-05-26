@@ -592,8 +592,6 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 
 - (void)slk_updateInsetAdjustmentBehavior
 {  
-    {
-{  
     // Deactivate automatic scrollView adjustment for inverted table view
     if (@available(iOS 11.0, *)) {
         if (self.isInverted) {

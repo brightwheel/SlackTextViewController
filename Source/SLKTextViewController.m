@@ -28,6 +28,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 {
     CGPoint _scrollViewOffsetBeforeDragging;
     CGFloat _keyboardHeightBeforeDragging;
+    CGRect _cachedKeyboardRect;
 }
 
 // The shared scrollView pointer, either a tableView or collectionView
@@ -158,6 +159,8 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     
     self.automaticallyAdjustsScrollViewInsets = YES;
     self.extendedLayoutIncludesOpaqueBars = YES;
+
+    _cachedKeyboardRect = CGRectNull;
 }
 
 
@@ -241,7 +244,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 {
     [super viewSafeAreaInsetsDidChange];
     
-    [self slk_updateViewConstraints];
+    [self slk_updateViewConstraintsFromCachedKeyboard];
 }
 
 
@@ -396,10 +399,10 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     if ([self ignoreTextInputbarAdjustment]) {
         return [self slk_appropriateBottomMargin];
     }
-    
-    CGRect keyboardRect = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    
-    return [self slk_appropriateKeyboardHeightFromRect:keyboardRect];
+
+    _cachedKeyboardRect = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+
+    return [self slk_appropriateKeyboardHeightFromRect:_cachedKeyboardRect];
 }
 
 - (CGFloat)slk_appropriateKeyboardHeightFromRect:(CGRect)rect
@@ -588,16 +591,18 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 }
 
 - (void)slk_updateInsetAdjustmentBehavior
+{  
     {
-        // Deactivate automatic scrollView adjustment for inverted table view
-        if (@available(iOS 11.0, *)) {
-            if (self.isInverted) {
-                _tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
-            } else {
-                _tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
-            }
+{  
+    // Deactivate automatic scrollView adjustment for inverted table view
+    if (@available(iOS 11.0, *)) {
+        if (self.isInverted) {
+            _tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        } else {
+            _tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
         }
     }
+}
 
 - (BOOL)slk_updateKeyboardStatus:(SLKKeyboardStatus)status
 {
@@ -1345,7 +1350,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     else if (_textInputbar.isEditing) {
         [self didCancelTextEditing:keyCommand];
     }
-   
+
     CGFloat bottomMargin = [self slk_appropriateBottomMargin];
     
     if ([self ignoreTextInputbarAdjustment] || ([self.textView isFirstResponder] && self.keyboardHC.constant == bottomMargin)) {
@@ -1399,6 +1404,8 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     // Programatically stops scrolling before updating the view constraints (to avoid scrolling glitch).
     if (status == SLKKeyboardStatusWillShow) {
         [self.scrollViewProxy slk_stopScrolling];
+    } else if (status == SLKKeyboardStatusWillHide) {
+        _cachedKeyboardRect = CGRectNull;
     }
     
     // Stores the previous keyboard height
@@ -1478,6 +1485,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     if (!self.isViewVisible) {
         if (status == SLKKeyboardStatusDidHide && self.keyboardStatus == SLKKeyboardStatusWillHide) {
             // Even if the view isn't visible anymore, let's still continue to update all states.
+            _cachedKeyboardRect = CGRectNull;
         }
         else {
             return;
@@ -2287,6 +2295,18 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     [super updateViewConstraints];
 }
 
+- (void)slk_updateViewConstraintsFromCachedKeyboard
+{
+    self.textInputbarHC.constant = self.textInputbar.minimumInputbarHeight;
+    self.scrollViewHC.constant = [self slk_appropriateScrollViewHeight];
+    self.keyboardHC.constant = [self slk_appropriateKeyboardHeightFromRect:_cachedKeyboardRect];
+    
+    if (_textInputbar.isEditing) {
+        self.textInputbarHC.constant += self.textInputbar.editorContentViewHeight;
+    }
+    
+    [super updateViewConstraints];
+}
 
 #pragma mark - Keyboard Command registration
 
